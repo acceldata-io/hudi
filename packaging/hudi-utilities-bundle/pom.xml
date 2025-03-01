@@ -359,7 +359,6 @@
       <groupId>org.apache.htrace</groupId>
       <artifactId>htrace-core4</artifactId>
       <version>${htrace.version}</version>
-      <classifier>incubating</classifier>
       <scope>compile</scope>
     </dependency>
 

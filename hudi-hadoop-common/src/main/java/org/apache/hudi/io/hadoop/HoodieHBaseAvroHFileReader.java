@@ -18,6 +18,7 @@
 
 package org.apache.hudi.io.hadoop;
 
+import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hudi.common.bloom.BloomFilter;
 import org.apache.hudi.common.bloom.BloomFilterFactory;
 import org.apache.hudi.common.model.HoodieAvroIndexedRecord;
@@ -421,7 +422,8 @@ public class HoodieHBaseAvroHFileReader extends HoodieAvroHFileReaderImplBase {
     // NOTE: Only scanners created in Positional Read ("pread") mode could share the same reader,
     //       since scanners in default mode will be seeking w/in the underlying stream
     try {
-      HFileScanner scanner = reader.getScanner(cacheBlocks, true);
+      Configuration hbaseConfig = HBaseConfiguration.create();
+      HFileScanner scanner = reader.getScanner(hbaseConfig, cacheBlocks, true);
       if (doSeek) {
         scanner.seekTo(); // places the cursor at the beginning of the first data block.
       }
@@ -557,7 +559,8 @@ public class HoodieHBaseAvroHFileReader extends HoodieAvroHFileReaderImplBase {
   @Override
   public ClosableIterator<String> getRecordKeyIterator() {
     HFile.Reader reader = getHFileReader();
-    final HFileScanner scanner = reader.getScanner(false, false);
+    Configuration hbaseConfig = HBaseConfiguration.create();
+    final HFileScanner scanner = reader.getScanner(hbaseConfig, false, false);
     return new ClosableIterator<String>() {
       @Override
       public boolean hasNext() {

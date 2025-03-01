@@ -19,6 +19,7 @@
 
 package org.apache.hudi.common.fs.inline;
 
+import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hudi.hadoop.fs.inline.InLineFileSystem;
 import org.apache.hudi.io.hadoop.HoodieHFileUtils;
 import org.apache.hudi.io.util.IOUtils;
@@ -56,7 +57,8 @@ public class TestInLineFileSystemWithHBaseHFileReader extends TestInLineFileSyst
     try (HFile.Reader reader =
              HoodieHFileUtils.createHFileReader(inlineFileSystem, inlinePath, new CacheConfig(conf), inlineConf)) {
       // Get a scanner that caches and that does not use pread.
-      HFileScanner scanner = reader.getScanner(true, false);
+      Configuration hbaseConfig = HBaseConfiguration.create();
+      HFileScanner scanner = reader.getScanner(hbaseConfig, true, false);
       // Align scanner at start of the file.
       scanner.seekTo();
       readAllRecords(scanner, maxRows);

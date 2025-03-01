@@ -19,6 +19,7 @@
 
 package org.apache.hudi.common.bootstrap.index.hfile;
 
+import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hudi.avro.model.HoodieBootstrapFilePartitionInfo;
 import org.apache.hudi.avro.model.HoodieBootstrapIndexInfo;
 import org.apache.hudi.avro.model.HoodieBootstrapPartitionMetadata;
@@ -163,14 +164,16 @@ public class HBaseHFileBootstrapIndexReader extends BootstrapIndex.IndexReader {
 
   @Override
   public List<String> getIndexedPartitionPaths() {
-    try (HFileScanner scanner = partitionIndexReader().getScanner(true, false)) {
+    Configuration hbaseConfig = HBaseConfiguration.create();
+    try (HFileScanner scanner = partitionIndexReader().getScanner(hbaseConfig, true, false)) {
       return getAllKeys(scanner, HFileBootstrapIndex::getPartitionFromKey);
     }
   }
 
   @Override
   public List<HoodieFileGroupId> getIndexedFileGroupIds() {
-    try (HFileScanner scanner = fileIdIndexReader().getScanner(true, false)) {
+    Configuration hbaseConfig = HBaseConfiguration.create();
+    try (HFileScanner scanner = fileIdIndexReader().getScanner(hbaseConfig, true, false)) {
       return getAllKeys(scanner, HFileBootstrapIndex::getFileGroupFromKey);
     }
   }
@@ -192,7 +195,8 @@ public class HBaseHFileBootstrapIndexReader extends BootstrapIndex.IndexReader {
 
   @Override
   public List<BootstrapFileMapping> getSourceFileMappingForPartition(String partition) {
-    try (HFileScanner scanner = partitionIndexReader().getScanner(true, false)) {
+    Configuration hbaseConfig = HBaseConfiguration.create();
+    try (HFileScanner scanner = partitionIndexReader().getScanner(hbaseConfig, true, false)) {
       KeyValue keyValue = new KeyValue(getUTF8Bytes(getPartitionKey(partition)), new byte[0], new byte[0],
           HConstants.LATEST_TIMESTAMP, KeyValue.Type.Put, new byte[0]);
       if (scanner.seekTo(keyValue) == 0) {
@@ -224,7 +228,8 @@ public class HBaseHFileBootstrapIndexReader extends BootstrapIndex.IndexReader {
     // Arrange input Keys in sorted order for 1 pass scan
     List<HoodieFileGroupId> fileGroupIds = new ArrayList<>(ids);
     Collections.sort(fileGroupIds);
-    try (HFileScanner scanner = fileIdIndexReader().getScanner(true, false)) {
+    Configuration hbaseConfig = HBaseConfiguration.create();
+    try (HFileScanner scanner = fileIdIndexReader().getScanner(hbaseConfig, true, false)) {
       for (HoodieFileGroupId fileGroupId : fileGroupIds) {
         KeyValue keyValue = new KeyValue(getUTF8Bytes(getFileGroupKey(fileGroupId)), new byte[0], new byte[0],
             HConstants.LATEST_TIMESTAMP, KeyValue.Type.Put, new byte[0]);
