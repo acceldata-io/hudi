@@ -92,6 +92,8 @@ public enum StorageSchemes {
   DFS("dfs", false, true, null),
   // Hopsworks File System
   HOPSFS("hopsfs", false, true, null);
+  // Gravitino Virtual File System — delegates to underlying object/block storage
+  GVFS("gvfs", false, null, null, null),
 
   // list files may bring pressure to storage with centralized meta service like HDFS.
   // when we want to get only part of files under a directory rather than all files, use getStatus may be more friendly than listStatus.
