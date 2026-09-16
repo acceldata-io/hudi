@@ -37,6 +37,7 @@ public class TestStorageSchemes {
   public void testStorageSchemes() {
     assertTrue(StorageSchemes.isSchemeSupported("hdfs"));
     assertTrue(StorageSchemes.isSchemeSupported("afs"));
+    assertTrue(StorageSchemes.isSchemeSupported("gvfs"));
     assertFalse(StorageSchemes.isSchemeSupported("s2"));
 
     for (StorageSchemes scheme : StorageSchemes.values()) {
@@ -71,6 +72,19 @@ public class TestStorageSchemes {
     assertFalse(StorageSchemes.isAtomicCreationSupported("tos"));
     assertFalse(StorageSchemes.isAtomicCreationSupported("cfs"));
     assertTrue(StorageSchemes.isAtomicCreationSupported("hopsfs"));
+    assertFalse(StorageSchemes.isAtomicCreationSupported("gvfs"));
+    assertFalse(StorageSchemes.isWriteTransactional("gvfs"));
+  }
+
+  @Test
+  public void testGvfsConversionToHoodieScheme() {
+    Path gvfsTablePath = new Path("gvfs://catalog/database/table");
+    String hoodieGvfsScheme = HoodieWrapperFileSystem.getHoodieScheme("gvfs");
+
+    assertEquals("hoodie-gvfs", hoodieGvfsScheme);
+    assertEquals(
+        new Path("hoodie-gvfs://catalog/database/table"),
+        HoodieWrapperFileSystem.convertPathWithScheme(gvfsTablePath, hoodieGvfsScheme));
   }
 
   @Test
