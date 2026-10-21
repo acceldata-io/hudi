@@ -385,12 +385,20 @@ public abstract class HoodieStorage implements Closeable {
 
   /**
    * @return whether a temporary file needs to be created for immutability.
+   * A scheme is included when {@code create()} can make the file name visible before the
+   * output stream is closed. Content is then written to a sibling temp file and renamed into
+   * place, so readers of the immutable or timeline name never observe a partial file.
    */
   @PublicAPIMethod(maturity = ApiMaturityLevel.EVOLVING)
   public final boolean needCreateTempFile() {
     return StorageSchemes.HDFS.getScheme().equals(getScheme())
         // viewfs itself is just an abstraction layer on top of other file systems based on hadoop like HDFS, therefore, enabling the creation of temporary files is the safest
         || StorageSchemes.VIEWFS.getScheme().equals(getScheme())
+        // gvfs always reports scheme "gvfs" and delegates create() to the fileset's real filesystem.
+        // An HDFS-backed fileset publishes the file as soon as create() returns, before the stream
+        // is closed. The backing store is chosen per fileset and is not visible from this scheme, so
+        // temp-file-then-rename is required for every gvfs storage to keep the timeline name hidden.
+        || StorageSchemes.GVFS.getScheme().equals(getScheme())
         // Local file will be visible immediately after LocalFileSystem#create(..), even before the output
         // stream is closed, so temporary file is also needed for atomic file creating with content written.
         || StorageSchemes.FILE.getScheme().equals(getScheme());
